@@ -15,6 +15,23 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:12
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: HuyHuy1256
+          POSTGRES_DB: simple_bank
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432 
+
     steps:
 
     - name: Set up Go
@@ -25,6 +42,15 @@ jobs:
 
     - name: Checkout code into the Go module directory
       uses: actions/checkout@v2
+
+    - name: Install golang-migrate
+      uses: |
+        curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.1/migrate.linux-amd64.tar.gz | tar xvz
+        sudo mv migrate.linux-amd64 /usr/bin/migrate
+        which migrate
+    
+    - name: Run migrations
+      uses: make migrateup
 
     - name: Test
       run: make test
